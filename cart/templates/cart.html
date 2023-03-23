@@ -1,0 +1,215 @@
+{% extends 'home/base.html' %} {% load static %} {% block links %}
+<link rel="stylesheet" href="{% static 'cart/css/cart.css'%}" />
+{% endblock %} {% block title %} Carrito {% endblock %} 
+{% block contenido %}
+<div class="cart-container">
+  <div class="cart-title">
+    <h3>Carrito</h3>
+    <div class="cart-title-line"></div>
+  </div>
+  <div class="cart-products">
+    {% for product in products %}
+    <div class="cart-product">
+      <div class="cart-product-img">
+        <img src="{{product.imagen.url}}" alt="" />
+      </div>
+      <div class="cart-product-info">
+        <h3 class="cart-product-name">{{product.name}}</h3>
+        <h3 class="total-h3" data-product-id="{{product.id}}">
+          $<span class="total">{{product.total}}</span>
+        </h3>
+        <h3
+          class="price"
+          data-product-id="{{product.id}}"
+          style="display: none"
+        >
+          {{product.price}}
+        </h3>
+        <div class="cart-product-buttons">
+          <div class="cart-product-quantity">
+            <button class="cart-product-quantity-button minus">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <path
+                  d="M416 256c0 17.7-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"
+                />
+              </svg>
+            </button>
+            <div class="quantity" data-product-id="{{product.id}}">
+              {{product.quantity}}
+            </div>
+            <button class="cart-product-quantity-button plus">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <path
+                  d="M240 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H176V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H384c17.7 0 32-14.3 32-32s-14.3-32-32-32H240V80z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button data-id="{{product.id}}" class="cart-product-remove">
+          <svg
+            width="24px"
+            height="24px"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 448 512"
+          >
+            <path
+              d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="cart-products-total">
+      <h3>
+        Total: $<span id="cart-total">{{total}}</span>
+      </h3>
+      <div class="cho-container" data-preference-id="{{preference_id}}"></div>
+    </div>
+  </div>
+  <h3 id="empty-cart">No hay productos en el carrito</h3>
+</div>
+<div id="toast-error">Error al remover el producto del carrito</div>
+{% endblock %}
+{% block js %}
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+  const mp = new MercadoPago('APP_USR-758cb8fd-68d4-41d1-9ebc-b15b73d5e898', {
+    locale: 'es-AR'
+  });
+
+  const preferenceId = document.querySelector(".cho-container").dataset.preferenceId
+  const checkout = mp.checkout({
+    preference: {
+      id: preferenceId
+    },
+    render: {
+      container: '.cho-container',
+      label: 'Comprar',
+    }
+  });
+  checkout.on('payment', function (data) {
+    console.log('payment', data);
+  });
+</script>
+<script>
+  const minus = document.querySelectorAll(".minus")
+  const plus = document.querySelectorAll(".plus")
+  const total = document.querySelectorAll(".total")
+
+  minus.forEach((minus) => {
+    minus.addEventListener("click", () => {
+      const q = event.currentTarget.parentNode.querySelector(".quantity")
+      if (q.innerText > 1) {
+        q.innerText = parseInt(q.innerText) - 1
+        const productId = q.dataset.productId
+        const url = `/cart/add/${productId}/${q.innerText}`
+        fetch(url)
+          .then((response) => (response.json()))
+          .then((data) => {
+            console.log(data)
+          })
+      }
+    })
+  })
+
+  plus.forEach((plus) => {
+    plus.addEventListener("click", () => {
+      const q = event.currentTarget.parentNode.querySelector(".quantity")
+      if (q.innerText < 9) {
+        q.innerText = parseInt(q.innerText) + 1
+        const productId = q.dataset.productId
+        const url = `/cart/add/${productId}/${q.innerText}`
+        fetch(url)
+          .then((response) => (response.json()))
+          .then((data) => {
+            console.log(data)
+          })
+      }
+    })
+  })
+
+  const cartTotal = document.getElementById("cart-total")
+
+  let t = 0;
+  total.forEach((totalElement) => {
+    t += parseFloat(totalElement.innerText)
+  })
+  cartTotal.innerText = t.toFixed(2)
+
+  const quantityElements = document.querySelectorAll(".quantity")
+
+  const observer = new MutationObserver((mutationsList) => {
+    for (let mutation of mutationsList) {
+      if (
+        mutation.type === "childList" &&
+        mutation.target.classList.contains("quantity")
+      ) {
+        const newQuantity = parseInt(mutation.target.innerText)
+        const productPrice = parseFloat(
+          mutation.target.closest(".cart-product-info").querySelector(".price")
+            .innerText
+        )
+        const totalProduct = productPrice * newQuantity
+        mutation.target
+          .closest(".cart-product-info")
+          .querySelector(".total").innerText = totalProduct.toFixed(2)
+      
+        let t = 0;
+        total.forEach((totalElement) => {
+          t += parseFloat(totalElement.innerText)
+        })
+        cartTotal.innerText = t.toFixed(2)
+      }
+    }
+  })
+
+  quantityElements.forEach((quantityElement) => {
+    observer.observe(quantityElement, { childList: true })
+  })
+
+  const toastError = document.getElementById("toast-error");
+
+  const remove = document.querySelectorAll(".cart-product-remove")
+  remove.forEach((botonEliminar) => {
+    botonEliminar.addEventListener("click", (event) => {
+      const productId = botonEliminar.dataset.id;
+      const url = `/cart/remove/${productId}`
+      fetch(url)
+        .then((response) => {console.log(response); return response.json()})
+        .then((data) => {
+          if (data.status === "ok") {
+            event.currentTarget.closest(".cart-product").remove()
+          } else {
+            toastError.classList.add("show");
+            setTimeout(() => {
+              toastError.classList.remove("show");
+            }, 3000);
+          }
+        })
+    })
+  })
+
+  const cartProducts = document.querySelector(".cart-products")
+  const emptyCart = document.querySelector("#empty-cart")
+
+  const cartObserver = new MutationObserver(() => {
+    if (cartProducts.querySelectorAll(".cart-product").length === 0) {
+      cartProducts.style.display = 'none';
+      emptyCart.style.display = 'block';
+    } else {
+      cartProducts.style.display = 'block';
+      emptyCart.style.display = 'none';
+    }
+  })
+
+  cartObserver.observe(cartProducts, { childList: true })
+
+  if (cartProducts.querySelectorAll(".cart-product").length === 0) {
+    cartProducts.style.display = 'none';
+    emptyCart.style.display = 'block';
+  }
+
+</script>
+{% endblock %}

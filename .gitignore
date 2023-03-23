@@ -1,0 +1,7 @@
+db.sqlite3
+__pycache__
+*/__pycache__
+*/migrations/__pycache__
+Ecommerce2/__pycache__
+cart/cfgMP.py
+Ecommerce2/cfgDB.py

@@ -1,0 +1,116 @@
+{% extends 'home/base.html' %} {% load static %} {% block links %}
+<link rel="stylesheet" href="{% static 'product/css/product.css' %}" />
+{% endblock %} {% block title %} {{product.name}} {% endblock %}
+{% block contenido %}
+<div class="product-container">
+  <div class="left-product-content">
+    <div class="product-images">
+      <img
+        id="product-big-image"
+        class="product-big-image"
+        src="{{images.0}}"
+        alt=""
+      />
+      <div class="product-thumbnails">
+        {% for image in images %}
+        <img class="product-thumbnail" src="{{image}}" alt="" />
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="right-product-content">
+    <div class="product-info">
+      <h1 class="product-name">{{product.name}}</h1>
+      <p class="product-description">{{product.description}}</p>
+      <p class="product-price">${{product.price}}</p>
+    </div>
+    <div class="product-buttons">
+      <div class="product-quantity">
+        <button class="product-quantity-button" id="minus">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M416 256c0 17.7-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"
+            />
+          </svg>
+        </button>
+        <div id="quantity">1</div>
+        <button class="product-quantity-button" id="plus">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M240 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H176V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H384c17.7 0 32-14.3 32-32s-14.3-32-32-32H240V80z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="product-add-to-cart">
+        <button id="add-to-cart" class="product-add-to-cart-button">
+          Añadir al carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast-success">Producto añadido al carrito</div>
+<div id="toast-error">Error al añadir el producto al carrito</div>
+{% endblock %} 
+{% block js %}
+<script>
+  const thumbnails = document.querySelectorAll(".product-thumbnail")
+  const imagenPrincipal = document.querySelector("#product-big-image")
+
+  thumbnails[0].classList.add("product-thumbnail-selected")
+
+  thumbnails.forEach((thumbnail) => {
+    thumbnail.addEventListener("click", () => {
+      thumbnails.forEach((thumbnail) => {
+        thumbnail.classList.remove("product-thumbnail-selected")
+      })
+      thumbnail.classList.add("product-thumbnail-selected")
+      imagenPrincipal.src = thumbnail.src
+    })
+  })
+
+  const quantity = document.querySelector("#quantity")
+  const minus = document.querySelector("#minus")
+  const plus = document.querySelector("#plus")
+
+  minus.addEventListener("click", () => {
+    if (quantity.innerHTML > 1) {
+      quantity.innerHTML = parseInt(quantity.innerHTML) - 1
+    }
+  })
+
+  plus.addEventListener("click", () => {
+    if (quantity.innerHTML < 9) {
+      quantity.innerHTML = parseInt(quantity.innerHTML) + 1
+    }
+  })
+
+  const toastSuccess = document.getElementById("toast-success");
+  const toastError = document.getElementById("toast-error");
+
+  const addToCartButton = document.querySelector("#add-to-cart")
+
+  addToCartButton.addEventListener("click", () => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const productId = urlParams.get("id")
+
+    const url = `/cart/add/${productId}/${quantity.innerHTML}`
+    fetch(url)
+      .then((response) => (response.json()))
+      .then((data) => {
+        if (data.status === "ok") {
+          toastSuccess.classList.add("show");
+          setTimeout(() => {
+            toastSuccess.classList.remove("show");
+          }, 3000);
+        } else {
+          toastError.classList.add("show");
+          setTimeout(() => {
+            toastError.classList.remove("show");
+          }, 3000);
+        }
+      })
+  })
+</script>
+{% endblock %}

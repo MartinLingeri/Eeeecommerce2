@@ -1,0 +1,38 @@
+{% extends 'home/base.html' %}
+{% load static %}
+{% block links %}
+<link rel="stylesheet" href="{% static 'home/css/index.css'%}">
+{% endblock %}
+
+{% block title %} Inicio {% endblock %}
+
+{% block contenido %}
+<section class="welcome">
+    {% if user.is_authenticated %}
+      <h2>¡Bienvenido, {{ user.nombre }}!</h2>
+    {% else %}
+      <h2>¡Bienvenido!</h2>
+    {% endif %}
+ </section>
+ <section class="products">
+    <div class="title-products">
+        <h3>Nuestros productos</h3>
+        <div class="title-line"></div>
+     </div>
+     
+     <div class="product-cards">
+        {% for product in products %}
+        <div class="product-card">
+           <div class="product-img">
+              <img src="{{ product.images.0 }}" alt="Imagen">
+           </div>
+           <div class="product-info">
+              <h4>{{ product.name }}</h4>
+              <p>{{ product.description }}</p>
+              <a href="/product/?id={{ product.idproducts }}">Ver más</a>
+           </div>
+        </div>
+        {% endfor %}
+    </div>
+ </section>
+{% endblock %}
